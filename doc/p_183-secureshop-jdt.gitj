@@ -1,0 +1,19 @@
+{
+  "repoUrl": "https://github.com/DavidSottasLeBarbare1/P_183-SecuredWebshop",
+  "projectName": "P_183-SecureShop-JDT",
+  "branch": "main",
+  "me": "DavidSottasLeBarbare1",
+  "journalStartDate": null,
+  "exceptions": [
+    {
+      "id": "f4231a64-440d-4b19-868e-ac2feab7d383",
+      "type": "commitless",
+      "name": "Init",
+      "description": "Initialisation du projet",
+      "date": "2026-03-18T11:26",
+      "duration": 15,
+      "status": "Done",
+      "author": "DavidSottasLeBarbare1"
+    }
+  ]
+}
