@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const argon2 = require('argon2');
+const pepper = process.env.DB_PEPPER;
 
 module.exports = {
   // ----------------------------------------------------------
@@ -29,7 +30,8 @@ module.exports = {
         const user = results[0];
         
         //Verifying the password using argon2
-        const isPasswordValid = await argon2.verify(user.password, password);
+        const pepperedPassword = password + pepper;
+        const isPasswordValid = await argon2.verify(user.password, pepperedPassword);
 
         //Sending the 401 error if the password is incorrect
         if (!isPasswordValid) {
@@ -67,8 +69,9 @@ module.exports = {
     }
 
     try {
-      //Hashing the password using argon2
-      const hashPassword = await argon2.hash(password);
+      //Hashing the password using argon2 and the pepper
+      const pepperedPassword = password + pepper;
+      const hashPassword = await argon2.hash(pepperedPassword);
       
       //Declaring a variable for the query using ? to avoid sql injections (A05)
       const query = `
