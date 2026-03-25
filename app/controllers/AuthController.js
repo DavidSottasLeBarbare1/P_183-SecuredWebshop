@@ -1,74 +1,96 @@
 const db = require("../config/db");
+const argon2 = require('argon2');
 
 module.exports = {
   // ----------------------------------------------------------
   // POST /api/auth/login
   // ----------------------------------------------------------
-  login: (req, res) => {
+  login: async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email et mot de passe requis" });
     }
 
-    const query = `SELECT * FROM users WHERE email = '${email}' AND password = '${password}'`;
-
-    db.query(query, (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: err.message, query: query });
-      }
-
-      if (results.length === 0) {
-        return res
-          .status(401)
-          .json({ error: "Email ou mot de passe incorrect" });
-      }
+    try {
+      //Declaring a variable for the query using ? to avoid sql injections (A05)
+      const query = "SELECT * FROM users WHERE email = ?";
       
-      res.redirect('/')
-    });
+      //Request
+      db.query(query, [email], async (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        //Checking if the user entered data is correct
+        if (results.length === 0) {
+          return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+        }
+
+        //Declaring the user variable
+        const user = results[0];
+        
+        //Verifying the password using argon2
+        const isPasswordValid = await argon2.verify(user.password, password);
+
+        //Sending the 401 error if the password is incorrect
+        if (!isPasswordValid) {
+          return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+        }
+
+        //Redirecting to home
+        res.redirect('/');
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Erreur lors de la vérification" });
+    }
   },
 
   // ----------------------------------------------------------
   // POST /api/auth/register
   // ----------------------------------------------------------
-  register: (req, res) => {
-    console.log(req.file)
+  register: async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "Photo de profil requise" });
     }
 
+    //Gathering every user sent data
     const { username, email, password, street, zip, city } = req.body;
 
+    //Getting the path of the pfp
     const photoPath = "/uploads/" + req.file.filename;
+
+    //Setting a default role
     const role = "user";
 
+    //Checking if every user data is present
     if (!username || !email || !password || !street || !zip || !city) {
-      return res
-        .status(400)
-        .json({ error: "Tous les champs sont obligatoires" });
+      return res.status(400).json({ error: "Tous les champs sont obligatoires" });
     }
 
-    const query = `
-      INSERT INTO users 
-      (username, email, password, role, photo_path, address) 
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
+    try {
+      //Hashing the password using argon2
+      const hashPassword = await argon2.hash(password);
+      
+      //Declaring a variable for the query using ? to avoid sql injections (A05)
+      const query = `
+        INSERT INTO users (username, email, password, role, photo_path, address) 
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
 
-    db.query(
-      query,
-      [username, email, password, role, photoPath, `${street}, ${zip} ${city}`],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res
-            .status(500)
-            .json({ error: "Erreur lors de la création du compte" });
+      //Request
+      db.query(
+        query,
+        [username, email, hashPassword, role, photoPath, `${street}, ${zip} ${city}`],
+        (err, result) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Erreur lors de la création du compte" });
+          }
+          //Redirecting to login
+          res.redirect('/login');
         }
-
-        res.status(201).json({
-          message: "Utilisateur créé avec succès",
-        });
-      },
-    );
+      );
+    } catch (error) {
+      res.status(500).json({ error: "Erreur de hachage" });
+    }
   },
 };
