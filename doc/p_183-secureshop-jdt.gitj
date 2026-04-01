@@ -14,6 +14,16 @@
       "duration": 15,
       "status": "Done",
       "author": "DavidSottasLeBarbare1"
+    },
+    {
+      "id": "c9185056-9765-4239-8b63-d63380c2086c",
+      "type": "commitless",
+      "name": "analyse jwt",
+      "description": "J'ai regarder sur la doc npm de jwt pour savoir comment faire des tokens en utilisant des cookies et un middleware",
+      "date": "2026-03-25T11:14:00.000Z",
+      "duration": 13,
+      "status": "Done",
+      "author": "DavidSottasLeBarbare1"
     }
   ]
 }

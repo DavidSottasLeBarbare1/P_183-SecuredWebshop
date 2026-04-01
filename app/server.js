@@ -2,8 +2,13 @@ require('dotenv').config({ path: '../.env' });
 
 const express = require("express");
 const path = require("path");
+const cookieParser = require('cookie-parser');
+const authSecurity = require('./middleware/auth');
 
 const app = express();
+
+//Cookies 
+app.use(cookieParser());
 
 // Middleware pour parser le corps des requêtes
 app.use(express.json());
