@@ -1,6 +1,8 @@
 require('dotenv').config({ path: '../.env' });
 
 const express = require("express");
+const https = require('https');
+const fs = require('fs');
 const path = require("path");
 const cookieParser = require('cookie-parser');
 const authSecurity = require('./middleware/auth');
@@ -43,8 +45,13 @@ app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "views", "
 app.get("/profile", authSecurity, (_req, res) => res.sendFile(path.join(__dirname, "views", "profile.html")));
 app.get("/admin", adminSecurity,    (_req, res) => res.sendFile(path.join(__dirname, "views", "admin.html")));
 
-// Démarrage du serveur
-app.get("/test",      (_req, res) => res.send("db admin: root, pwd : root"));
-app.listen(8080, () => {
-    console.log("Serveur démarré sur http://localhost:8080");
+const options = {
+  key: fs.readFileSync(path.join(__dirname, 'key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, 'cert.pem'))
+};
+
+const PORT = 443;
+
+https.createServer(options, app).listen(PORT, () => {
+  console.log(`Serveur lancé sur https://localhost:${PORT}`);
 });
