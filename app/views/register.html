@@ -15,13 +15,9 @@
           <div class="profile-card" style="margin-top: 0; max-width: 500px">
             <h1 style="text-align: center">Inscription</h1>
 
-            <form
-              action="/api/auth/register"
-              method="POST"
-              enctype="multipart/form-data"
-              id="register-form"
-            >
-              <div class="form-group">
+            <form id="register-form">
+            <div id="error-message" style="color: red; display: none;"></div>
+              <div class="form-group">  
                 <label for="username">Nom d'utilisateur</label>
                 <input
                   type="text"
@@ -139,3 +135,32 @@
     <script src="/js/nav.js"></script>
   </body>
 </html>
+<script>
+const form = document.getElementById('register-form');
+const errorDiv = document.getElementById('error-message');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      errorDiv.innerText = data.message;
+      errorDiv.style.display = 'block';
+    } else {
+      window.location.href = '/login';
+    }
+  } catch (err) {
+    errorDiv.innerText = "Une erreur de connexion est survenue.";
+    errorDiv.style.display = 'block';
+  }
+});
+</script>

@@ -14,7 +14,8 @@
             <div class="container">
                 <div class="profile-card" style="margin-top: 0;">
                     <h1>Connexion</h1>
-                    <form action="/api/auth/login" method="POST">
+                    <div id="error-message" style="color: red; display: none;"></div>
+                    <form id="login-form">
                         <div class="form-group">
                             <label for="email">Email</label>
                             <input type="email" id="email" name="email" placeholder="Votre email" required>
@@ -41,5 +42,40 @@
     </footer>
 
     <script src="/js/nav.js"></script>
+    <script>
+        const form = document.getElementById('login-form');
+        const errorDiv = document.getElementById('error-message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                email: form.email.value,
+                password: form.password.value
+            };
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    errorDiv.innerText = result.error;
+                    errorDiv.style.display = 'block';
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                errorDiv.innerText = "Une erreur de connexion est survenue.";
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>
