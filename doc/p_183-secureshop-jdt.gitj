@@ -24,6 +24,32 @@
       "duration": 13,
       "status": "Done",
       "author": "DavidSottasLeBarbare1"
+    },
+    {
+      "id": "992a2c93-f510-477b-babb-b87ef81ef51b",
+      "type": "commitpatch",
+      "sha": "1d5f616e75407481eb97c24c5827c67a046fe0d4",
+      "url": "https://github.com/DavidSottasLeBarbare1/P_183-SecuredWebshop/commit/1d5f616e75407481eb97c24c5827c67a046fe0d4",
+      "name": "feat(7): added jwt",
+      "description": "",
+      "date": "2026-04-01T07:12:00.000Z",
+      "duration": 29,
+      "status": "Done",
+      "author": "DavidSottasLeBarbare1",
+      "patch": true
+    },
+    {
+      "id": "1213b309-6f5d-4cdb-b286-30217034d9aa",
+      "type": "commitpatch",
+      "sha": "366feb5a6790e55da349a365ef10eb0ece607384",
+      "url": "https://github.com/DavidSottasLeBarbare1/P_183-SecuredWebshop/commit/366feb5a6790e55da349a365ef10eb0ece607384",
+      "name": "feat(8): added admin page protection",
+      "description": "",
+      "date": "2026-04-01T07:25:00.000Z",
+      "duration": 13,
+      "status": "Done",
+      "author": "DavidSottasLeBarbare1",
+      "patch": true
     }
   ]
 }

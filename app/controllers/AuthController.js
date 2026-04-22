@@ -1,16 +1,21 @@
 const db = require("../config/db");
 const argon2 = require("argon2");
 const pepper = process.env.DB_PEPPER;
-const jwt = require('jsonwebtoken');
-const fs = require('fs');
-
+const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const hashConfig = {
+  type: argon2.argon2id,
+  memoryCost: 65536,
+  timeCost: 3,
+  parallelism: 4,
+};
 module.exports = {
   // ----------------------------------------------------------
   // POST /api/auth/login
   // ----------------------------------------------------------
   login: async (req, res) => {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: "Email et mot de passe requis" });
     }
@@ -19,7 +24,7 @@ module.exports = {
       //Declaring a variable for the query using ? to avoid sql injections (A05)
       const query = "SELECT * FROM users WHERE email = ?";
 
-      //Request 
+      //Request
       db.query(query, [email], async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -32,7 +37,6 @@ module.exports = {
 
         //Declaring the user variable
         const user = results[0];
-        console.log('User found:', user.email);
 
         //Verifying the password using argon2
         const pepperedPassword = password + pepper;
@@ -48,6 +52,18 @@ module.exports = {
             .json({ error: "Email ou mot de passe incorrect" });
         }
 
+        if (argon2.needsRehash(user.password, hashConfig)) {
+          const newHashedPassword = await argon2.hash(
+            pepperedPassword,
+            hashConfig,
+          );
+
+          const updateQuery = "UPDATE users SET password = ? WHERE id = ?";
+          db.query(updateQuery, [newHashedPassword, user.id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+          });
+        }
+
         //Creating a new token
         const token = jwt.sign(
           { id: user.id, role: user.role },
@@ -56,7 +72,7 @@ module.exports = {
         );
 
         //Sending the token in a cookie
-        res.cookie('token', token, { httpOnly: true, secure: false });
+        res.cookie("token", token, { httpOnly: true, secure: false });
 
         // Return success JSON
         res.status(200).json({ message: "Connexion réussie" });
@@ -70,22 +86,24 @@ module.exports = {
   // POST /api/auth/register
   // ----------------------------------------------------------
   register: async (req, res) => {
-    console.log('Register called');
-    console.log('req.file:', req.file);
     if (!req.file) {
-      console.log('No file provided');
       return res.status(400).json({ error: "Photo de profil requise" });
     }
 
     //Gathering every user sent data
     const { username, email, password, street, zip, city } = req.body;
-    console.log('Received data:', { username, email, password: '***', street, zip, city });
 
     // Validate with joi
     const { signupValidator } = require("../validators/auth");
-    const { error } = signupValidator({ username, email, password, street, zip, city });
+    const { error } = signupValidator({
+      username,
+      email,
+      password,
+      street,
+      zip,
+      city,
+    });
     if (error) {
-      console.log('Validation error:', error.details[0].message);
       if (req.file) {
         fs.unlinkSync(req.file.path);
       }
@@ -100,7 +118,6 @@ module.exports = {
 
     //Checking if every user data is present
     if (!username || !email || !password || !street || !zip || !city) {
-      console.log('Missing fields');
       return res
         .status(400)
         .json({ error: "Tous les champs sont obligatoires" });
@@ -110,7 +127,6 @@ module.exports = {
       //Hashing the password using argon2 and the pepper
       const pepperedPassword = password + pepper;
       const hashPassword = await argon2.hash(pepperedPassword);
-      console.log('Password hashed');
 
       //Declaring a variable for the query using ? to avoid sql injections (A05)
       const query = `
@@ -131,18 +147,17 @@ module.exports = {
         ],
         (err, result) => {
           if (err) {
-            console.error('DB insert error:', err);
+            console.error("DB insert error:", err);
             return res
               .status(500)
               .json({ error: "Erreur lors de la création du compte" });
           }
-          console.log('User inserted, ID:', result.insertId);
           // Return success JSON
           res.status(201).json({ message: "Utilisateur créé avec succès" });
         },
       );
     } catch (error) {
-      console.error('Hash error:', error);
+      console.error("Hash error:", error);
       res.status(500).json({ error: "Erreur de hachage" });
     }
   },

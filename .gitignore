@@ -9,3 +9,7 @@
 /app/public/uploads/*.gif
 /app/public/uploads/*.webp
 /app/public/uploads/*.jfif
+
+# Certificat
+cert.pem
+key.pem
