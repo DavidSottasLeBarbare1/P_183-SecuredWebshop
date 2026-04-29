@@ -26,7 +26,10 @@ module.exports = {
 
       //Request
       db.query(query, [email], async (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) {
+          console.error("Login error:", err);
+          return res.status(500).json({ error: "Erreur serveur" });
+        }
 
         //Checking if the user entered data is correct
         if (results.length === 0) {
@@ -60,7 +63,7 @@ module.exports = {
 
           const updateQuery = "UPDATE users SET password = ? WHERE id = ?";
           db.query(updateQuery, [newHashedPassword, user.id], (err) => {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) console.error('Rehash error:', err);
           });
         }
 

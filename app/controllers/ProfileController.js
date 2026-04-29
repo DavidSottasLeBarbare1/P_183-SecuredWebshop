@@ -11,6 +11,7 @@ module.exports = {
         
         db.query('SELECT id, username, email, role, address, photo_path FROM users WHERE id = ?', [userId], (err, results) => {
             if (err) {
+                console.error('Profile get error:', err);
                 return res.status(500).json({ error: 'Erreur serveur' });
             }
             if (results.length === 0) {
@@ -29,6 +30,7 @@ module.exports = {
 
         db.query('UPDATE users SET address = ? WHERE id = ?', [address, userId], (err) => {
             if (err) {
+                console.error('Profile update error:', err);
                 return res.status(500).json({ error: 'Erreur serveur' });
             }
             res.json({ message: 'Profil mis à jour' });
@@ -49,6 +51,7 @@ module.exports = {
 
         db.query('UPDATE users SET photo_path = ? WHERE id = ?', [photoPath, userId], (err) => {
             if (err) {
+                console.error('Profile uploadPhoto error:', err);
                 return res.status(500).json({ error: 'Erreur serveur' });
             }
             res.json({ message: 'Photo mise à jour', photo_path: photoPath });

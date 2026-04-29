@@ -18,10 +18,11 @@ module.exports = (req, res, next) => {
         if (req.user && req.user.role === 'admin') {
             next();
         } else {
-            return res.status(403).send("Accès refusé");
+            return res.status(403).redirect('/');
         }
 
     } catch (error) {
+        console.error('Admin middleware error:', error.message);
         res.clearCookie('token');
         return res.status(401).redirect('/login');
     }

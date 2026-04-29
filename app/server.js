@@ -52,6 +52,11 @@ const options = {
 
 const PORT = 443;
 
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.stack);
+  res.status(500).json({ error: 'Erreur serveur' });
+});
+
 https.createServer(options, app).listen(PORT, () => {
   console.log(`Serveur lancé sur https://localhost:${PORT}`);
 });
