@@ -1,0 +1,5 @@
+#hashes.txt creation : docker exec db_container mysql -u root -proot webshop -e "SELECT username, password FROM users;" \ | awk 'NR>1 {print $2}' > hashes.txt
+
+#rockyoupeppered.txt creation : while IFS= read -r line; do echo "${line}SkibidiLatif"; done < ./testJohn/rockyou.txt > ./testJohn/rockyou_peppered.txt
+
+#"C:\path\to\john.exe" \--format=argon2 ./testJohn/hashes.txt --wordlist=./testJohn/rockyou_peppered.txt
