@@ -68,11 +68,27 @@ module.exports = {
         const token = jwt.sign(
           { id: user.id, role: user.role },
           process.env.JWT_SECRET,
-          { expiresIn: "2h" },
+          { expiresIn: "15m" },
         );
 
-        //Sending the token in a cookie
+        const refreshToken = jwt.sign(
+          { id: user.id },
+          process.env.JWT_REFRESH_SECRET,
+          { expiresIn: "7d" },
+        );
+
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        db.query(
+          "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+          [user.id, refreshToken, expiresAt],
+        );
+
+        // Send tokens as cookies
         res.cookie("token", token, { httpOnly: true, secure: false });
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: false,
+        });
 
         // Return success JSON
         res.status(200).json({ message: "Connexion réussie" });
@@ -166,5 +182,52 @@ module.exports = {
       console.error("Hash error:", error);
       res.status(500).json({ error: "Erreur de hachage" });
     }
+  },
+
+  refresh: async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) return res.status(401).json({ error: "Token manquant" });
+
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+      db.query(
+        `SELECT rt.*, u.role FROM refresh_tokens rt 
+   JOIN users u ON u.id = rt.user_id 
+   WHERE rt.token = ? AND rt.expires_at > NOW()`,
+        [refreshToken],
+        (err, results) => {
+          if (err || results.length === 0) {
+            res.clearCookie("refreshToken");
+            return res.status(401).json({ error: "Refresh token invalide" });
+          }
+
+          const newAccessToken = jwt.sign(
+            { id: decoded.id, role: results[0].role },
+            process.env.JWT_SECRET,
+            { expiresIn: "15m" },
+          );
+
+          res.cookie("token", newAccessToken, {
+            httpOnly: true,
+            secure: false,
+          });
+          res.status(200).json({ message: "Token rafraîchi" });
+        },
+      );
+    } catch (err) {
+      res.clearCookie("refreshToken");
+      return res.status(401).json({ error: "Refresh token expiré" });
+    }
+  },
+
+  logout: (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      db.query("DELETE FROM refresh_tokens WHERE token = ?", [refreshToken]);
+    }
+    res.clearCookie("token");
+    res.clearCookie("refreshToken");
+    res.status(200).json({ message: "Déconnecté" });
   },
 };

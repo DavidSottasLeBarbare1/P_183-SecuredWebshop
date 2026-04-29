@@ -19,5 +19,7 @@ const upload = multer({ storage: storage });
 
 router.post("/login", controller.login);
 router.post("/register", upload.single("profile_photo"), controller.register);
+router.post("/refresh", controller.refresh);
+router.post("/logout", controller.logout)
 
 module.exports = router;

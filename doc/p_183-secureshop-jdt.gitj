@@ -50,6 +50,29 @@
       "status": "Done",
       "author": "DavidSottasLeBarbare1",
       "patch": true
+    },
+    {
+      "id": "bbdaf9b5-b8a0-416d-ba81-db8512376f97",
+      "type": "commitpatch",
+      "sha": "a79856dbb58f58367d70feb34b12d430b64b8b6a",
+      "url": "https://github.com/DavidSottasLeBarbare1/P_183-SecuredWebshop/commit/a79856dbb58f58367d70feb34b12d430b64b8b6a",
+      "name": "feat(13): added john the ripper's commands",
+      "description": "",
+      "date": "2026-04-29T07:19:00.000Z",
+      "duration": 62,
+      "status": "Done",
+      "author": "DavidSottasLeBarbare1",
+      "patch": true
+    },
+    {
+      "id": "3bbe6ce0-cdfa-41f4-add6-f30c55550a2f",
+      "type": "commitless",
+      "name": "Clé GPG",
+      "description": "J'ai réglé un problème avec ma clé GPG",
+      "date": "2026-04-29T08:06:00.000Z",
+      "duration": 32,
+      "status": "Done",
+      "author": "DavidSottasLeBarbare1"
     }
   ]
 }

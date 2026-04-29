@@ -23,7 +23,7 @@ module.exports = {
     // ----------------------------------------------------------
     // POST /api/profile
     // ----------------------------------------------------------
-    update: (req, res) => {e
+    update: (req, res) => {
         const userId = req.user.id;
         const { address } = req.body;
 
