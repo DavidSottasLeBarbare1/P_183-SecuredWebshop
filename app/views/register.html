@@ -16,8 +16,8 @@
             <h1 style="text-align: center">Inscription</h1>
 
             <form id="register-form">
-            <div id="error-message" style="color: red; display: none;"></div>
-              <div class="form-group">  
+              <div id="error-message" style="color: red; display: none"></div>
+              <div class="form-group">
                 <label for="username">Nom d'utilisateur</label>
                 <input
                   type="text"
@@ -60,7 +60,40 @@
                   "
                 />
               </div>
-
+              <div style="display: flex; gap: 4px; margin-top: 6px">
+                <div class="strength-segment" id="segment1"></div>
+                <div class="strength-segment" id="segment2"></div>
+                <div class="strength-segment" id="segment3"></div>
+                <div class="strength-segment" id="segment4"></div>
+              </div>
+              <div
+                id="strength-label"
+                style="
+                  font-size: 12px;
+                  font-weight: 500;
+                  margin-top: 4px;
+                  color: #9ca3af;
+                "
+              >
+                Entrez un mot de passe
+              </div>
+              <ul
+                id="req-list"
+                style="margin: 6px 0 0; padding: 0; list-style: none"
+              >
+                <li id="length" class="req-item">
+                  <span class="dot"></span>12 caractères minimum
+                </li>
+                <li id="uppercase" class="req-item">
+                  <span class="dot"></span>1 majuscule
+                </li>
+                <li id="number" class="req-item">
+                  <span class="dot"></span>1 chiffre
+                </li>
+                <li id="special" class="req-item">
+                  <span class="dot"></span>1 caractère spécial (@$!%*?&amp;)
+                </li>
+              </ul>
               <hr />
 
               <div class="form-group">
@@ -135,13 +168,61 @@
     <script src="/js/nav.js"></script>
   </body>
 </html>
+<script src="/js/nav.js"></script>
 <script>
 const form = document.getElementById('register-form');
 const errorDiv = document.getElementById('error-message');
+const passwordInput = document.getElementById('password');
+const segments = [document.getElementById('segment1'), document.getElementById('segment2'), document.getElementById('segment3'), document.getElementById('segment4')];
+const label = document.getElementById('strength-label');
+const requirements = {
+  length: document.getElementById('length'),
+  uppercase: document.getElementById('uppercase'),
+  number: document.getElementById('number'),
+  special: document.getElementById('special')
+};
+
+passwordInput.addEventListener('input', () => {
+  const value = passwordInput.value;
+  const checks = {
+    length: value.length >= 12,
+    uppercase: /[A-Z]/.test(value),
+    number: /\d/.test(value),
+    special: /[@$!%*?&]/.test(value)
+  };
+
+  Object.entries(checks).forEach(([key, state]) => {
+    requirements[key].classList.toggle('ok', state);
+  });
+
+  const score = Object.values(checks).filter(Boolean).length;
+  const levels = [
+    { class: 'weak',   color: '#ef4444', text: 'Très faible' },
+    { class: 'weak',   color: '#ef4444', text: 'Faible' },
+    { class: 'medium', color: '#f59e0b', text: 'Moyen' },
+    { class: 'medium', color: '#f59e0b', text: 'Bon' },
+    { class: 'strong', color: '#22c55e', text: 'Fort' }
+  ];
+
+  if (!value.length) {
+    segments.forEach(s => s.className = 'strength-segment');
+    label.textContent = 'Entrez un mot de passe';
+    label.style.color = '#9ca3af';
+    return;
+  }
+
+  const lvl = levels[score];
+  segments.forEach((s, i) => {
+    s.className = 'strength-segment' + (i < score ? ' ' + lvl.class : '');
+  });
+  label.textContent = lvl.text;
+  label.style.color = lvl.color;
+});
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
+  errorDiv.style.display = 'none';
   const formData = new FormData(form);
 
   try {
@@ -152,11 +233,11 @@ form.addEventListener('submit', async (e) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      errorDiv.innerText = data.message;
-      errorDiv.style.display = 'block';
-    } else {
+    if (response.ok) {
       window.location.href = '/login';
+    } else {
+      errorDiv.innerText = data.error || data.message || "Une erreur est survenue.";
+      errorDiv.style.display = 'block';
     }
   } catch (err) {
     errorDiv.innerText = "Une erreur de connexion est survenue.";

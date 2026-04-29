@@ -148,6 +148,12 @@ module.exports = {
         (err, result) => {
           if (err) {
             console.error("DB insert error:", err);
+
+            if (err.code === "ER_DUP_ENTRY") {
+              return res
+                .status(409)
+                .json({ error: "Cette adresse email est déjà utilisée." });
+            }
             return res
               .status(500)
               .json({ error: "Erreur lors de la création du compte" });
