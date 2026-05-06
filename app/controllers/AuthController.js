@@ -41,6 +41,12 @@ module.exports = {
         //Declaring the user variable
         const user = results[0];
 
+        // Check if account is locked
+        if (user.locked_until && new Date(user.locked_until) > new Date()) {
+          return res.status(403).json({
+            error: "Compte verrouillé.",
+          });
+        }
         //Verifying the password using argon2
         const pepperedPassword = password + pepper;
         const isPasswordValid = await argon2.verify(
@@ -50,10 +56,37 @@ module.exports = {
 
         //Sending the 401 error if the password is incorrect
         if (!isPasswordValid) {
+          const newAttempts = user.failed_attempts + 1;
+          const MAX_ATTEMPTS = 5;
+
+          if (newAttempts >= MAX_ATTEMPTS) {
+            // Locks the account for 15 minutes
+            const lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+            db.query(
+              "UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?",
+              [newAttempts, lockedUntil, user.id],
+            );
+            return res.status(403).json({
+              error:
+                "Compte verrouillé après trop de tentatives. Réessayez dans 15 minutes.",
+            });
+          }
+
+          // Increment failed attempts
+          db.query("UPDATE users SET failed_attempts = ? WHERE id = ?", [
+            newAttempts,
+            user.id,
+          ]);
           return res
             .status(401)
             .json({ error: "Email ou mot de passe incorrect" });
         }
+
+        // Reset failed attempts on successful login
+        db.query(
+          "UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ?",
+          [user.id],
+        );
 
         if (argon2.needsRehash(user.password, hashConfig)) {
           const newHashedPassword = await argon2.hash(
@@ -63,7 +96,7 @@ module.exports = {
 
           const updateQuery = "UPDATE users SET password = ? WHERE id = ?";
           db.query(updateQuery, [newHashedPassword, user.id], (err) => {
-            if (err) console.error('Rehash error:', err);
+            if (err) console.error("Rehash error:", err);
           });
         }
 

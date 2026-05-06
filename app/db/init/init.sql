@@ -22,7 +22,9 @@ CREATE TABLE IF NOT EXISTS users (
     password   VARCHAR(255) NOT NULL,
     role       VARCHAR(20)  NOT NULL DEFAULT 'user',
     address    VARCHAR(255),
-    photo_path VARCHAR(255)
+    photo_path VARCHAR(255),
+    failed_attempts INT NOT NULL DEFAULT 0,
+    locked_until DATETIME NULL
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------
