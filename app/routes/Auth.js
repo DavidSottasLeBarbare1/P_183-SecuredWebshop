@@ -5,6 +5,15 @@ const path = require("path");
 const controller = require("../controllers/AuthController");
 const { signupValidator } = require("../validators/auth");
 const fs = require("fs");
+const rateLimit = require("express-rate-limit");
+
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop de tentatives de connexion."},
+});
 
 // Configuration de multer pour l'upload de photos
 const storage = multer.diskStorage({
@@ -17,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post("/login", controller.login);
+router.post("/login", loginLimiter, controller.login);
 router.post("/register", upload.single("profile_photo"), controller.register);
 router.post("/refresh", controller.refresh);
 router.post("/logout", controller.logout)
