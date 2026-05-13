@@ -84,11 +84,21 @@
 
             const photoContainer = document.getElementById('photo-container');
             if (user.photo_path) {
-                photoContainer.innerHTML = `<img class="profile-photo" src="${user.photo_path}" alt="Photo de profil">`;
+                const img = document.createElement('img');
+                img.className = 'profile-photo';
+                img.src = user.photo_path;
+                img.alt = 'Photo de profil';
+                photoContainer.replaceChildren(img);
             }
 
             const infoDiv = document.getElementById('user-info');
-            infoDiv.innerHTML += `<div class="info-row"><strong>Adresse :</strong> ${user.address || ''}</div>`;
+            const div = document.createElement('div');
+            div.className = 'info-row';
+            div.innerHTML = '<strong>Adresse :</strong> '; // contenu statique, pas de données user
+            const span = document.createElement('span');
+            span.textContent = user.address || '';         // données user via textContent uniquement
+            div.appendChild(span);
+            infoDiv.appendChild(div)
         }
 
         // ------------------------------------------------------------------
