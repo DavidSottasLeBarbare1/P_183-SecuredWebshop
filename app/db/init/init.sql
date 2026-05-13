@@ -16,7 +16,7 @@ USE webshop;
 -- Table users
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
-    id         INT AUTO_INCREMENT PRIMARY KEY,z
+    id         INT AUTO_INCREMENT PRIMARY KEY,
     username   VARCHAR(50)  NOT NULL,
     email      VARCHAR(100) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,
@@ -62,3 +62,14 @@ INSERT INTO products (name, description, price, image_url) VALUES
         89.00,
         'https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80'
     );
+
+DROP USER IF EXISTS 'Latif_app'@'%';
+DROP USER IF EXISTS 'Latif_init'@'%';
+
+CREATE USER 'Latif_app'@'%' IDENTIFIED BY 'supertufflatifpasswordAPP';
+GRANT SELECT, INSERT, UPDATE, DELETE ON webshop.* TO 'Latif_app'@'%';
+
+CREATE USER 'Latif_init'@'%' IDENTIFIED BY 'supertufflatifpasswordINIT';
+GRANT CREATE, DROP, ALTER, INDEX, REFERENCES ON webshop.* TO 'Latif_init'@'%';
+
+FLUSH PRIVILEGES;
