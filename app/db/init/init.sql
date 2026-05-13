@@ -51,9 +51,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 -- ---------------------------------------------------------------
 -- Données de départ
 -- ---------------------------------------------------------------
-INSERT INTO users (username, email, password, role, address) VALUES
-    ('admin',  'admin@webshop.com', 'admin123',  'admin', '1 Rue de la Paix, 1000 Lausanne'),
-    ('alice',  'alice@webshop.com', 'password1', 'user',  '42 Avenue des Alpes, 1200 Genève');
 
 INSERT INTO products (name, description, price, image_url) VALUES
     (

@@ -7,6 +7,9 @@ const path = require("path");
 const cookieParser = require('cookie-parser');
 const authSecurity = require('./middleware/auth');
 const adminSecurity = require('./middleware/admin');
+const argon2 = require('argon2');
+const db = require('./config/db');
+const pepper = process.env.DB_PEPPER
 
 const app = express();
 
@@ -58,5 +61,22 @@ app.use((err, req, res, next) => {
 });
 
 https.createServer(options, app).listen(PORT, () => {
+  createUsers()
   console.log(`Serveur lancé sur https://localhost:${PORT}`);
 });
+
+async function createUsers() {
+  const users = [
+    { email: 'admin@webshop.com', password: 'admin123' },
+    { email: 'alice@webshop.com', password: 'password123' },
+  ];
+
+  for (const u of users) {
+    const hash = await argon2.hash(u.password + pepper);
+    await new Promise((res, rej) =>
+      db.query('UPDATE users SET password = ? WHERE email = ?', [hash, u.email],
+        (err) => err ? rej(err) : res())
+    );
+  }
+}
+

@@ -9,14 +9,14 @@
 <body>
     <div id="topbar"></div>
 
-    <main>
+     <main>
         <section class="hero">
             <div class="container">
                 <h1>Administration</h1>
                 <p class="hero-text">Gestion des utilisateurs</p>
             </div>
         </section>
-
+ 
         <section class="admin-section">
             <div class="container">
                 <h2>Liste des utilisateurs</h2>
@@ -28,10 +28,11 @@
                             <th>Email</th>
                             <th>Rôle</th>
                             <th>Adresse</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="user-table-body">
-                        <tr><td colspan="5">Chargement...</td></tr>
+                        <tr><td colspan="6">Chargement...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -46,24 +47,74 @@
 
     <script src="/js/nav.js"></script>
     <script>
-        fetch('/api/admin/users')
-            .then(r => r.json())
-            .then(users => {
-                const tbody = document.getElementById('user-table-body');
-                tbody.innerHTML = users.map(u => `
-                    <tr>
-                        <td>${u.id}</td>
-                        <td>${u.username}</td>
-                        <td>${u.email}</td>
-                        <td><span class="badge-${u.role}">${u.role}</span></td>
-                        <td>${u.address || '-'}</td>
-                    </tr>
-                `).join('');
-            })
-            .catch(() => {
-                document.getElementById('user-table-body').innerHTML =
-                    '<tr><td colspan="5">Erreur lors du chargement</td></tr>';
-            });
+        async function loadUsers() {
+            const tbody = document.getElementById('user-table-body');
+            try {
+                const r = await fetch('/api/admin/users');
+                const users = await r.json();
+ 
+                tbody.replaceChildren();
+ 
+                users.forEach(u => {
+                    const tr = document.createElement('tr');
+ 
+                    // ID
+                    const tdId = document.createElement('td');
+                    tdId.textContent = u.id;
+ 
+                    // Nom
+                    const tdName = document.createElement('td');
+                    tdName.textContent = u.username;
+ 
+                    // Email
+                    const tdEmail = document.createElement('td');
+                    tdEmail.textContent = u.email;
+ 
+                    // Rôle
+                    const tdRole = document.createElement('td');
+                    const span = document.createElement('span');
+                    span.className = 'badge-' + u.role;
+                    span.textContent = u.role;
+                    tdRole.appendChild(span);
+ 
+                    // Adresse
+                    const tdAddress = document.createElement('td');
+                    tdAddress.textContent = u.address || '-';
+ 
+                    // Actions
+                    const tdActions = document.createElement('td');
+                    const btn = document.createElement('button');
+                    btn.textContent = 'Débloquer';
+                    btn.className = 'btn-unlock';
+                    btn.addEventListener('click', () => unlockUser(u.id, btn));
+                    tdActions.appendChild(btn);
+ 
+                    tr.append(tdId, tdName, tdEmail, tdRole, tdAddress, tdActions);
+                    tbody.appendChild(tr);
+                });
+            } catch {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 6;
+                td.textContent = 'Erreur lors du chargement';
+                tr.appendChild(td);
+                tbody.replaceChildren(tr);
+            }
+        }
+ 
+        async function unlockUser(id, btn) {
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                const res = await fetch(`/api/admin/users/${id}/unlock`, { method: 'POST' });
+                const data = await res.json();
+                btn.textContent = res.ok ? 'Débloqué' : 'Erreur';
+            } catch (err){
+                console.log(err);
+            }
+        }
+ 
+        loadUsers();
     </script>
 </body>
 </html>
