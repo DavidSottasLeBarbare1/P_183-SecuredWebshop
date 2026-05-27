@@ -29,6 +29,7 @@
                     <div class="info-row"><strong>Nom :</strong> <span id="username">...</span></div>
                     <div class="info-row"><strong>Email :</strong> <span id="email">...</span></div>
                     <div class="info-row"><strong>Rôle :</strong> <span id="role">...</span></div>
+                    <div class="info-row"><strong>Adresse :</strong> <span id="displayed-address">...</span></div>
                 </div>
 
                 <hr>
@@ -69,17 +70,17 @@
     <script src="/js/nav.js"></script>
     <script>
         // ------------------------------------------------------------------
-        // Chargement du profil au démarrage
+        // Chargement du profil
         // ------------------------------------------------------------------
         async function loadProfile() {
             const res = await fetch('/api/profile');
             if (!res.ok) return;
             const user = await res.json();
 
-            document.getElementById('username').textContent = user.username;
-            document.getElementById('email').textContent    = user.email;
-            document.getElementById('role').textContent     = user.role;
-
+            document.getElementById('username').textContent = user.username || '';
+            document.getElementById('email').textContent    = user.email || '';
+            document.getElementById('role').textContent     = user.role || '';
+            document.getElementById('displayed-address').textContent = user.address || '';
             document.getElementById('address').value = user.address || '';
 
             const photoContainer = document.getElementById('photo-container');
@@ -90,15 +91,6 @@
                 img.alt = 'Photo de profil';
                 photoContainer.replaceChildren(img);
             }
-
-            const infoDiv = document.getElementById('user-info');
-            const div = document.createElement('div');
-            div.className = 'info-row';
-            div.innerHTML = '<strong>Adresse :</strong> '; // contenu statique, pas de données user
-            const span = document.createElement('span');
-            span.textContent = user.address || '';         // données user via textContent uniquement
-            div.appendChild(span);
-            infoDiv.appendChild(div)
         }
 
         // ------------------------------------------------------------------

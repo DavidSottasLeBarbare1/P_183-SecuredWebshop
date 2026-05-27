@@ -9,6 +9,7 @@ const hashConfig = {
   timeCost: 3,
   parallelism: 4,
 };
+
 module.exports = {
   // ----------------------------------------------------------
   // POST /api/auth/login
@@ -56,15 +57,14 @@ module.exports = {
 
         //Sending the 401 error if the password is incorrect
         if (!isPasswordValid) {
-          const newAttempts = user.failed_attempts + 1;
-          const MAX_ATTEMPTS = 5;
+          const failed_attempts = user.failed_attempts + 1;
 
-          if (newAttempts >= MAX_ATTEMPTS) {
+          if (failed_attempts >= 5) {
             // Locks the account for 15 minutes
-            const lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+            const lockedUntil = new Date(900000 + Date.now());
             db.query(
               "UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?",
-              [newAttempts, lockedUntil, user.id],
+              [failed_attempts, lockedUntil, user.id],
             );
             return res.status(403).json({
               error:
@@ -74,7 +74,7 @@ module.exports = {
 
           // Increment failed attempts
           db.query("UPDATE users SET failed_attempts = ? WHERE id = ?", [
-            newAttempts,
+            failed_attempts,
             user.id,
           ]);
           return res
@@ -113,7 +113,8 @@ module.exports = {
           { expiresIn: "7d" },
         );
 
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        // expires in 1 week
+        const expiresAt = new Date(604800000 + Date.now());
         db.query(
           "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
           [user.id, refreshToken, expiresAt],
@@ -135,7 +136,7 @@ module.exports = {
   },
 
   // ----------------------------------------------------------
-  // POST /api/auth/register
+  // POST /api/auth/register (Mis à jour pour connexion immédiate)
   // ----------------------------------------------------------
   register: async (req, res) => {
     if (!req.file) {
@@ -210,8 +211,43 @@ module.exports = {
               .status(500)
               .json({ error: "Erreur lors de la création du compte" });
           }
-          // Return success JSON
-          res.status(201).json({ message: "Utilisateur créé avec succès" });
+
+          const newUserId = result.insertId;
+
+          const token = jwt.sign(
+            { id: newUserId, role: role },
+            process.env.JWT_SECRET,
+            { expiresIn: "15m" },
+          );
+
+          const refreshToken = jwt.sign(
+            { id: newUserId },
+            process.env.JWT_REFRESH_SECRET,
+            { expiresIn: "7d" },
+          );
+          
+          // expires in 1 week
+          const expiresAt = new Date(604800000 + Date.now());
+          
+          db.query(
+            "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+            [newUserId, refreshToken, expiresAt],
+            (tokenErr) => {
+              if (tokenErr) {
+                console.error("Refresh token insert error:", tokenErr);
+              }
+            }
+          );
+
+          res.cookie("token", token, { httpOnly: true, secure: false });
+          res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: false,
+          });
+
+          return res.status(201).json({ 
+            message: "Utilisateur créé et connecté avec succès" 
+          });
         },
       );
     } catch (error) {
@@ -249,7 +285,7 @@ module.exports = {
             secure: false,
           });
           res.status(200).json({ message: "Token rafraîchi" });
-        },
+          },
       );
     } catch (err) {
       res.clearCookie("refreshToken");

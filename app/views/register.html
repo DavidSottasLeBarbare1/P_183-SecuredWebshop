@@ -234,7 +234,7 @@ form.addEventListener('submit', async (e) => {
     const data = await response.json();
 
     if (response.ok) {
-      window.location.href = '/login';
+      window.location.href = '/profile';
     } else {
       errorDiv.innerText = data.error || data.message || "Une erreur est survenue.";
       errorDiv.style.display = 'block';

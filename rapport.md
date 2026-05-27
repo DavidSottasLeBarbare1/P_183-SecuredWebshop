@@ -1,6 +1,10 @@
 # Rapport
-**Projet P_183-SecuredWebshop**  
-ETML — Section informatique — David Sottas
+| | |
+| :--- | :--- |
+| **Candidat** | Sottas David |
+| **Lieu de travail** | ETML |
+| **Chef de projet** | Gaël Sonney |
+| **Nombre de périodes**| 24p |
 
 ---
 
@@ -35,7 +39,7 @@ Les requêtes utilisaient auparavant la concaténation directe de données utili
 L'authentification repose maintenant sur des tokens JWT. À la connexion, le serveur génère un access token (durée courte) et un refresh token (durée longue) stocké en base de données. Les tokens sont transmis via des cookies `httpOnly`, inaccessibles depuis le JavaScript côté client.
 
 **Rôles dans le JWT et protection des routes admin**  
-Le rôle de l'utilisateur (`user` ou `admin`) est inclus dans le payload du JWT. Un middleware `adminSecurity` vérifie ce rôle avant d'autoriser l'accès aux routes d'administration. Un utilisateur normal qui tenterait d'accéder à `/api/admin` reçoit un 403.
+Le rôle de l'utilisateur (`user` ou `admin`) est inclus dans le payload du JWT. Un middleware `adminSecurity` vérifie ce rôle avant d'autoriser l'accès aux routes d'administration. Un utilisateur normal qui tenterait d'accéder à `/api/admin` reçoit un 403. Les credentials pour le role admin se trouve dans `app/server.js`.
 
 ---
 
@@ -49,6 +53,9 @@ La validation des mots de passe est faite avec Joi côté serveur. Un mot de pas
 
 **Token JWT avec durée limitée et refresh token**
 L'access token expire après 15 minutes. Un refresh token de longue durée est stocké en base de données. Quand l'access token expire, le client envoie automatiquement le refresh token pour en obtenir un nouveau, sans que l'utilisateur ait besoin de se reconnecter.
+
+**Audit des dépendances NPM**
+Un audit de sécurité des packages Node.js installés a été réalisé à l'aide de la commande native `npm audit`. Cet outil permet d'analyser l'arbre des dépendances du projet. Les vulnérabilités détectées ont été corrigées à l'aide de la commande `npm audit fix`, ce qui a permis de mettre à jour automatiquement les paquets concernés vers des versions sécurisées sans introduire de changements majeurs (breaking changes).
 
 **Gestion des exceptions**
 Un middleware global de gestion d'erreurs a été ajouté dans `server.js`. En cas d'erreur, le serveur retourne uniquement un message générique au client (`"Erreur serveur"`) et logue le détail technique uniquement côté serveur. Aucun stack trace ni message SQL n'est exposé au client.
